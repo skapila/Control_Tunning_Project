@@ -78,8 +78,13 @@ class CartPoleSystem(object):
         # self.controller = lqr_controller.LqrController(cart_mass,
         #         point_mass, pole_length)
 
-        Kpc,Kdc,Kic=0.2,0,0.075    #0.2,0,0.05  
+        #Kpc,Kdc,Kic=0.2,0,0.075    #0.2,0,0.05  
+        #Kpp,Kdp,Kip=0.1,0,0.003  #0.1,0,0.003
+        
+        Kpc,Kdc,Kic=0.2,0,0.05    #0.2,0,0.05  
         Kpp,Kdp,Kip=0.1,0,0.003  #0.1,0,0.003
+        
+        
         self.controller = pid_controller.PidController(Kpc, Kdc, Kic, Kpp, Kdp, Kip)
 
 
