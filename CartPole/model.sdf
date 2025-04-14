@@ -11,7 +11,7 @@
         <pose degrees="true">0 0 0   0 90 0</pose>
         <geometry>
           <cylinder>
-            <length>5</length>
+            <length>1.70</length>
             <radius>0.01</radius>
           </cylinder>
         </geometry>
@@ -21,7 +21,7 @@
         </material>
       </visual>
       <visual name="lower_limit">
-        <pose>-2.5 0 0   0 0 0</pose>
+        <pose>-0.870 0 0   0 0 0</pose>
         <geometry>
           <box>
             <size>0.05 0.05 0.15</size>
@@ -33,7 +33,7 @@
         </material>
       </visual>
       <visual name="upper_limit">
-        <pose>2.5 0 0   0 0 0</pose>
+        <pose>0.870 0 0   0 0 0</pose>
         <geometry>
           <box>
             <size>0.05 0.05 0.15</size>
@@ -51,8 +51,8 @@
       <axis>
         <xyz>1 0 0</xyz>
         <limit>
-          <lower>-24.9</lower>
-          <upper>24.9</upper>
+          <lower>-0.80</lower>
+          <upper>0.80</upper>
           <effort>100</effort>
         </limit>
       </axis>
@@ -91,8 +91,7 @@
     </joint>
 
     <link name="pole">
-       <!-- <pose>0 0.040 0.2   0 0 0</pose> -->
-      <pose>0 0 0.2   0 0 0</pose>
+      <pose>0 0.040 0.2   0 0 0</pose>
       <inertial auto="true"/>
       <visual name="visual">
         <geometry>
@@ -153,4 +152,4 @@
     </plugin>
   </model>
 </sdf>
-
+   
