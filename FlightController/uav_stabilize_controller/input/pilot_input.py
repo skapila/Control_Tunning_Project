@@ -66,13 +66,14 @@ class PilotInput:
             
             pygame.event.pump()  # Process joystick events
             
-            self.roll_pwm = self._scale_joystick(joystick.get_axis(3))  # Left/Right
-            self.pitch_pwm = self._scale_joystick(-joystick.get_axis(4))  # Forward/Backward
-            self.throttle_pwm = self._scale_joystick(-joystick.get_axis(1))  # Throttle (inverted)
-            self.yaw_pwm = self._scale_joystick(joystick.get_axis(0))  # Yaw
+            self.roll_pwm = int(self._scale_joystick(joystick.get_axis(3)))  # Left/Right
+            self.pitch_pwm = int(self._scale_joystick(joystick.get_axis(4)))  # Forward/Backward
+            self.throttle_pwm = int(self._scale_joystick(-joystick.get_axis(1)))  # Throttle (inverted)
+            self.yaw_pwm = int(self._scale_joystick(joystick.get_axis(0)))  # Yaw
             
             # Print values for debugging
-            Logger.info(f"PWM inputs :- Roll: {self.roll_pwm}, Pitch: {self.pitch_pwm}, Throttle: {self.throttle_pwm}, Yaw: {self.yaw_pwm}")
+            #Logger.info(f"Unscaled inputs :- Roll: {joystick.get_axis(0)}, Pitch: {joystick.get_axis(1)}, Throttle: {joystick.get_axis(2)}, Yaw: {joystick.get_axis(3)}")
+            Logger.debug(f"PWM inputs :- Roll: {self.roll_pwm}, Pitch: {self.pitch_pwm}, Throttle: {self.throttle_pwm}, Yaw: {self.yaw_pwm}")
             time.sleep(0.1)  # simulate ~10Hz RC update rate
   
     def stop(self):

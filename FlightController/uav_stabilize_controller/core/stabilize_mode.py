@@ -32,5 +32,5 @@ class StabilizeMode:
         torque_yaw_command = self.rate_pid.compute(desired_rate, actual_rate, dt)
 
         
-        pwm_outputs = self.mixer.mix(pilot_input.get_throttle_pwm(), torque_pitch_command, torque_roll_command, torque_yaw_command)
-        self.esc.send_pwm(pwm_outputs)
+        esc_pwm_outputs = self.mixer.mix(pilot_input.get_throttle_pwm(), torque_pitch_command, torque_roll_command, torque_yaw_command)
+        self.esc.send_pwm(self.sensors,esc_pwm_outputs)
