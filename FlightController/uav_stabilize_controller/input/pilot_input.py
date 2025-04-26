@@ -18,6 +18,11 @@ class PilotInput:
         self.min_pwm = 1000
         self.max_pwm = 2000
 
+        # mode switch state
+        self.alt_hold = "ALT_HOLD"  # ALT MODE if set 1
+        self.stabilize = "STABILIZE"  # ALT MODE if set 1
+        self.mode_switch =  self.stabilize  # default mode
+
         # Start background listener thread
         self.running = True
         self.thread = threading.Thread(target=self._listen_to_rc, daemon=True)
@@ -65,6 +70,18 @@ class PilotInput:
             # Simulate random input changes (replace with actual RC read logic)
             
             pygame.event.pump()  # Process joystick events
+            
+            # Check if square button is pressed (usually index 3)
+            square_pressed = joystick.get_button(3) 
+            if(square_pressed):
+               self.mode_switch= self.alt_hold 
+            
+            # Check if triangle button is pressed (usually index 2)
+            triangle_pressed = joystick.get_button(2) 
+            if(triangle_pressed):
+               self.mode_switch= self.stabilize 
+       
+             
             
             self.roll_pwm = int(self._scale_joystick(joystick.get_axis(3)))  # Left/Right
             self.pitch_pwm = int(self._scale_joystick(joystick.get_axis(4)))  # Forward/Backward

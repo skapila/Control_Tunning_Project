@@ -14,6 +14,11 @@ class MavlinkSensor:
         self.pitch_rate = 0.0
         self.yaw_angle = 0.0
         self.yaw_rate = 0.0
+        self.attitude_msg = {}
+        
+        self.altitude =  0.0
+        self.altitude_msg = {}
+        
         self.running = True
         self.listener_thread = threading.Thread(target=self._listen_loop, daemon=True)
         self.listener_thread.start()
@@ -33,7 +38,7 @@ class MavlinkSensor:
 
         # Send RC command via MAVLink
         
-        Logger.debug(f"Sending PWM: {motor1}, {motor2}, {motor3}, {motor4}")
+        Logger.debug(f"PWM output: {motor1}, {motor2}, {motor3}, {motor4}")
         self.connection.mav.rc_channels_override_send(
         self.connection.target_system,  # Target system ID
         self.connection.target_component,  # Target component ID
@@ -64,7 +69,14 @@ class MavlinkSensor:
                 self.yaw_rate = msg['yawspeed'] * 57.3  # rad/s to deg/s
                  
                 self.attitude_msg= {'roll_angle':self.roll_angle, 'roll_rate':self.roll_rate, 'pitch_angle':self.pitch_angle, 'pitch_rate':self.pitch_rate, 'yaw_angle': self.yaw_angle, 'yaw_rate':self.yaw_rate}
-                Logger.debug(f"Attitude Message : {self.attitude_msg}")
+                #Logger.debug(f"Attitude Message : {self.attitude_msg}")
+             
+             elif(msg['mavpackettype']=="VFR_HUD"):
+             
+                self.altitude = msg['alt']
+                self.altitude_msg = {'alt': self.altitude}
+                #Logger.debug(f"Attitude Message : {self.altitude_msg}")
+             
             except: 
               pass
     
@@ -91,3 +103,5 @@ class MavlinkSensor:
         self.running = False
         self.listener_thread.join()
 
+    def read_alt(self):
+        return self.altitude
