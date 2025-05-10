@@ -29,9 +29,9 @@ class AltHoldMode:
            # do nothing, hold
            pass
         elif throttle_pwm > 1520:
-             self.target_altitude += 0.3
+             self.target_altitude += 3*dt
         elif throttle_pwm < 1480:
-             self.target_altitude -= 0.3
+             self.target_altitude -= 3*dt
 
         altitude_thrust_pwm = self.alt_pid.compute(self.target_altitude, current_altitude, dt)
 

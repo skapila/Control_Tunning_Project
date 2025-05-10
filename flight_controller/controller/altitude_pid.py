@@ -15,5 +15,8 @@ class AltitudePID:
 
         output = self.kP * error + self.kI * self.integral + self.kD * derivative
         pwm = self.hover_pwm + output
-        return max(1300, min(1700, pwm))  # tighter clamp instead of 1000–2000
+        return max(1300, min(1750, pwm))  # tighter clamp instead of 1000–2000
+        
+        Logger.debug(f"[ALT_PID] error={error:.2f}, pwm={pwm:.2f}")
+
 
