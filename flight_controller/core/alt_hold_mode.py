@@ -13,7 +13,7 @@ class AltHoldMode:
         self.sensors = sensors
         self.esc = esc
         self.target_altitude = None
-        self.hover_range_limit=30
+        self.hover_range_limit=20
        
 
     def update(self, pilot_input, dt):
@@ -24,14 +24,15 @@ class AltHoldMode:
            Logger.info(f"[ALT_HOLD] Locking target altitude at: {self.target_altitude:.2f} m")
 
         # adjust target altitude based on throttle PWM
+        vel_scale = 0.005  # max ±2.5 m/s
         throttle_pwm = pilot_input.get_throttle_pwm()
         if self.alt_pid.hover_pwm - self.hover_range_limit <= throttle_pwm <= self.alt_pid.hover_pwm + self.hover_range_limit:
            # do nothing, hold
            pass
-        elif throttle_pwm > 1520:
-             self.target_altitude += 3*dt
-        elif throttle_pwm < 1480:
-             self.target_altitude -= 3*dt
+        elif throttle_pwm > (self.alt_pid.hover_pwm + self.hover_range_limit):
+             self.target_altitude += (throttle_pwm - 1500) * vel_scale*dt
+        elif throttle_pwm < (self.alt_pid.hover_pwm - self.hover_range_limit):
+             self.target_altitude += (throttle_pwm - 1500) * vel_scale*dt
 
         altitude_thrust_pwm = self.alt_pid.compute(self.target_altitude, current_altitude, dt)
 

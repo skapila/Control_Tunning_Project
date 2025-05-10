@@ -1,5 +1,5 @@
 class AltitudePID:
-    def __init__(self, kP, kI, kD, hover_pwm=1580):
+    def __init__(self, kP, kI, kD, hover_pwm=1500):
         self.kP = kP
         self.kI = kI
         self.kD = kD

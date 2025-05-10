@@ -23,9 +23,9 @@ if __name__ == "__main__":
     angle_pid_pitch = AnglePID(kP=pid.PIT_ANGLE_KP)
     rate_pid_pitch = RatePID(kP=pid.PIT_RATE_KP, kI=pid.PIT_RATE_KI, kD=pid.PIT_RATE_KD)
     rate_pid_yaw = RatePID(kP=pid.YAW_RATE_KP, kI=pid.YAW_RATE_KI, kD=pid.YAW_RATE_KD)
-    alt_pid = AltitudePID(kP=1.5, kI=0.003, kD=0.5, hover_pwm=1630)
-    position_pid_x = PositionPID(kP=60, kI=0.02, kD=0)
-    position_pid_y = PositionPID(kP=60, kI=0.02, kD=0)
+    alt_pid = AltitudePID(kP=15, kI=3.5, kD=2)
+    position_pid_x = PositionPID(kP=65, kI=0.02, kD=0.5)
+    position_pid_y = PositionPID(kP=65, kI=0.02, kD=0.5)
     velocity_pid_x = VelocityPID(kP=0.8, kI=0.005, kD=0.2)
     velocity_pid_y = VelocityPID(kP=1.2, kI=0.01, kD=0.5)
 

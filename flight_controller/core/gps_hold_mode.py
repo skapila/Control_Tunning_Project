@@ -114,7 +114,7 @@ class GPSHoldMode:
         torque_yaw = self.rate_pid_yaw.compute(desired_yaw_rate, actual_yaw_rate, dt)
 
     # --- Altitude control
-        #altitude_pwm = int(self.alt_pid.compute(self.target_altitude, current_alt, dt))
+        altitude_pwm = int(self.alt_pid.compute(self.target_altitude, current_alt, dt))
 
     # --- Mix and send
         pwm_outputs = self.mixer.mix(pilot_input.get_throttle_pwm(), torque_pitch, torque_roll, torque_yaw)
