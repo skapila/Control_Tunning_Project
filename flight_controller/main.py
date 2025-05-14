@@ -2,7 +2,6 @@ from controller.altitude_pid import AltitudePID
 from controller.angle_pid import AnglePID
 from controller.rate_pid import RatePID
 from controller.motor_mixer import MotorMixer
-from controller.position_pid import PositionPID
 from controller.velocity_pid import VelocityPID
 from sensors.mavlink_sensor import MavlinkSensor
 from input.pilot_input import PilotInput
