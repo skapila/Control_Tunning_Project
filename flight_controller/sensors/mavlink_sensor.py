@@ -14,10 +14,8 @@ class MavlinkSensor:
         self.yaw_rate = 0.0
         self.yaw_radian =0.0
         self.attitude_msg = {}
-
         self.altitude = 0.0
         self.altitude_msg = {}
-
         self.lat = 0.0
         self.lon = 0.0
         self.vx = 0.0

@@ -9,12 +9,10 @@ class PilotInput:
         self.pitch_pwm = 1500
         self.yaw_pwm = 1500
         self.throttle_pwm = 1500
-
         self.max_angle = 45       # degrees
         self.max_yaw_rate = 100   # deg/sec
         self.min_pwm = 1000
         self.max_pwm = 2000
-
         self.gps_hold = "GPS_HOLD"
         self.alt_hold = "ALT_HOLD"
         self.stabilize = "STABILIZE"

@@ -17,7 +17,6 @@ class GPSHoldMode:
         self.mixer = mixer
         self.sensors = sensors
         self.esc = esc
-
         self.target_position = None
         self.target_altitude = None
         self.locked_position = None  # GPS origin
@@ -64,9 +63,6 @@ class GPSHoldMode:
         vx_body = math.cos(yaw) * vx_ned + math.sin(yaw) * vy_ned    # forward/backward
         vy_body = -math.sin(yaw) * vx_ned + math.cos(yaw) * vy_ned   # left/right
       
-       
-
-
     # --- Joystick override to shift target
         roll_pwm = pilot_input.get_roll_pwm()
         pitch_pwm = pilot_input.get_pitch_pwm()

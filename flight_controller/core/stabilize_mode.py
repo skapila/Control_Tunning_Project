@@ -5,13 +5,10 @@ import math
 class StabilizeMode:
     def __init__(self, angle_pid_roll, rate_pid_roll, angle_pid_pitch, rate_pid_pitch, rate_pid_yaw, mixer, sensors, esc):
         self.angle_pid_roll = angle_pid_roll
-        self.rate_pid_roll = rate_pid_roll
-        
+        self.rate_pid_roll = rate_pid_roll 
         self.angle_pid_pitch = angle_pid_pitch
         self.rate_pid_pitch = rate_pid_pitch
-
         self.rate_pid_yaw = rate_pid_yaw
-        
         self.mixer = mixer
         self.sensors = sensors
         self.esc = esc
@@ -55,6 +52,4 @@ class StabilizeMode:
         
         Logger.debug(f"[STAB] vx_actual: {vx_ned:.2f}, vy_actual: {vy_ned:.2f}")
         Logger.debug(f"[STAB] vx_body: {vx_body:.2f}, vy_body: {vy_body:.2f}")
-        #Logger.debug(f"[STAB] Desired Roll: {desired_roll:.2f}, Actual Roll: {actual_roll:.2f}")
-        #Logger.debug(f"[STAB] Desired Pitch: {desired_pitch:.2f}, Actual Pitch: {actual_pitch:.2f}")
-
+       
