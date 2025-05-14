@@ -13,5 +13,5 @@ class VelocityPID:
         self.prev_error = error
 
         output = self.kP * error + self.kI * self.integral + self.kD * derivative
-        return max(-10.0, min(10.0, output))  # Clamp desired angle in degrees
+        return output  # Clamp desired angle in degrees
 

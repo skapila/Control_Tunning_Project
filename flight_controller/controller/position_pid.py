@@ -13,5 +13,5 @@ class PositionPID:
         self.prev_error = error
 
         output = self.kP * error + self.kI * self.integral + self.kD * derivative
-        return max(-5.0, min(5.0, output))  # Clamp desired velocity (m/s)
+        return max(-25.0, min(25.0, output))  # Clamp desired velocity (m/s)
 

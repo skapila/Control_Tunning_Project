@@ -24,10 +24,8 @@ if __name__ == "__main__":
     rate_pid_pitch = RatePID(kP=pid.PIT_RATE_KP, kI=pid.PIT_RATE_KI, kD=pid.PIT_RATE_KD)
     rate_pid_yaw = RatePID(kP=pid.YAW_RATE_KP, kI=pid.YAW_RATE_KI, kD=pid.YAW_RATE_KD)
     alt_pid = AltitudePID(kP=15, kI=3.5, kD=2)
-    position_pid_x = PositionPID(kP=65, kI=0.02, kD=0.5)
-    position_pid_y = PositionPID(kP=65, kI=0.02, kD=0.5)
-    velocity_pid_x = VelocityPID(kP=0.8, kI=0.005, kD=0.2)
-    velocity_pid_y = VelocityPID(kP=1.2, kI=0.01, kD=0.5)
+    velocity_pid_x = VelocityPID(kP=15, kI=3.5, kD=2)
+    velocity_pid_y = VelocityPID(kP=15, kI=3.5, kD=2)
 
 
 
@@ -40,7 +38,7 @@ if __name__ == "__main__":
     # Modes
     stabilize_mode = StabilizeMode(angle_pid_roll, rate_pid_roll, angle_pid_pitch, rate_pid_pitch, rate_pid_yaw, mixer, sensors, esc)
     alt_hold_mode = AltHoldMode(alt_pid, angle_pid_roll, rate_pid_roll, angle_pid_pitch, rate_pid_pitch, rate_pid_yaw, mixer, sensors, esc)
-    gps_hold_mode = GPSHoldMode(position_pid_x, position_pid_y,velocity_pid_x, velocity_pid_y,
+    gps_hold_mode = GPSHoldMode(velocity_pid_x, velocity_pid_y,
                                 angle_pid_roll, rate_pid_roll,
                                 angle_pid_pitch, rate_pid_pitch, rate_pid_yaw,
                                 alt_pid, mixer, sensors, esc)

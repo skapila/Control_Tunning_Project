@@ -1,6 +1,6 @@
 from core.flight_mode import FlightMode
 from utils.logger import Logger
-
+import math
 
 class StabilizeMode:
     def __init__(self, angle_pid_roll, rate_pid_roll, angle_pid_pitch, rate_pid_pitch, rate_pid_yaw, mixer, sensors, esc):
@@ -45,6 +45,16 @@ class StabilizeMode:
         esc_pwm_outputs = self.mixer.mix(pilot_input.get_throttle_pwm(), torque_pitch_command, torque_roll_command, torque_yaw_command)
         self.esc.send_pwm(self.sensors,esc_pwm_outputs)
         
-        Logger.debug(f"[STAB] Desired Roll: {desired_roll:.2f}, Actual Roll: {actual_roll:.2f}")
-        Logger.debug(f"[STAB] Desired Pitch: {desired_pitch:.2f}, Actual Pitch: {actual_pitch:.2f}")
+        vx_ned,vy_ned,_ = self.sensors.read_velocity_ned()
+        yaw = self.sensors.read_yaw()  # In radians
+        
+        # Convert to body frame
+        vx_body = math.cos(yaw) * vx_ned + math.sin(yaw) * vy_ned    # forward/backward
+        vy_body = -math.sin(yaw) * vx_ned + math.cos(yaw) * vy_ned   # left/right
+      
+        
+        Logger.debug(f"[STAB] vx_actual: {vx_ned:.2f}, vy_actual: {vy_ned:.2f}")
+        Logger.debug(f"[STAB] vx_body: {vx_body:.2f}, vy_body: {vy_body:.2f}")
+        #Logger.debug(f"[STAB] Desired Roll: {desired_roll:.2f}, Actual Roll: {actual_roll:.2f}")
+        #Logger.debug(f"[STAB] Desired Pitch: {desired_pitch:.2f}, Actual Pitch: {actual_pitch:.2f}")
 

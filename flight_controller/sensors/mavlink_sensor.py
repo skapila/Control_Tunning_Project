@@ -12,6 +12,7 @@ class MavlinkSensor:
         self.pitch_rate = 0.0
         self.yaw_angle = 0.0
         self.yaw_rate = 0.0
+        self.yaw_radian =0.0
         self.attitude_msg = {}
 
         self.altitude = 0.0
@@ -57,6 +58,7 @@ class MavlinkSensor:
                     self.roll_rate = msg['rollspeed'] * 57.3
                     self.pitch_angle = msg['pitch'] * 57.3
                     self.pitch_rate = msg['pitchspeed'] * 57.3
+                    self.yaw_radian= msg['yaw']
                     self.yaw_angle = msg['yaw'] * 57.3
                     self.yaw_rate = msg['yawspeed'] * 57.3
                     self.attitude_msg = {
@@ -77,18 +79,20 @@ class MavlinkSensor:
                     self.lon = msg['lon'] / 1e7
 
                 elif msg['mavpackettype'] == "LOCAL_POSITION_NED":
-                    self.vx = msg['vx'] / 1.0
-                    self.vy = msg['vy'] / 1.0
-                    self.vz = msg['vz'] / 1.0
+                    self.vx = msg['vx']
+                    self.vy = msg['vy']
+                    self.vz = msg['vz']
+                    print("====="+str(self.vx)+"========")                
 
-            except Exception:
-                pass
+            except Exception as e:
+                Logger.error(f"Exception caught: {e}")
+               
 
     def read_roll(self): return self.roll_angle
     def read_roll_rate(self): return self.roll_rate
     def read_pitch(self): return self.pitch_angle
     def read_pitch_rate(self): return self.pitch_rate
-    def read_yaw(self): return self.yaw_angle
+    def read_yaw(self): return self.yaw_radian
     def read_yaw_rate(self): return self.yaw_rate
     def read_alt(self): return self.altitude
 
