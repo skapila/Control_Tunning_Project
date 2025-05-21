@@ -99,19 +99,35 @@ class GPSHoldMode:
         desired_yaw_rate = pilot_input.get_desired_yaw_rate()
         torque_yaw = self.rate_pid_yaw.compute(desired_yaw_rate, actual_yaw_rate, dt)
 
+# --- Yaw: add deadband filter
+        yaw_pwm = pilot_input.get_yaw_pwm()
+        if 1480 <= yaw_pwm <= 1520:
+            desired_yaw_rate = 0.0
+        else:
+            desired_yaw_rate = pilot_input.get_desired_yaw_rate()
+
+        torque_yaw = self.rate_pid_yaw.compute(desired_yaw_rate, actual_yaw_rate, dt)
+
  
     # --- Altitude hold logic adapted from AltHoldMode
         throttle_pwm = pilot_input.get_throttle_pwm()
         hover_pwm = self.alt_pid.hover_pwm
         hover_range_limit = 20  # deadband
         vel_scale = 0.005  # max climb/descent rate scaling
+        min_altitude = 0.0  # ground
 
-        if throttle_pwm > 1100:  # prevent takeoff unless above min throttle
+
+        if throttle_pwm > 1100:  # prevent takeoff unless above min throttle(takeoff safety check)
            if hover_pwm - hover_range_limit <= throttle_pwm <= hover_pwm + hover_range_limit:
               pass  # Maintain altitude
            else:
               climb_rate = (throttle_pwm - 1500) * vel_scale
-              self.target_altitude += climb_rate * dt
+             # self.target_altitude += climb_rate * dt
+              self.target_altitude = max(min_altitude, self.target_altitude + climb_rate * dt)
+
+        else:
+            # Force gentle descent when throttle too low
+            self.target_altitude = max(min_altitude, self.target_altitude - 0.3 * dt)
 
         altitude_pwm = int(self.alt_pid.compute(self.target_altitude, current_alt, dt))
 

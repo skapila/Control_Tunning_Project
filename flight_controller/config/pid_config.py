@@ -26,7 +26,6 @@
 #pitch pid
 #PIT_ANGLE_KP = 4.5
 #PIT_RATE_KP = 0.30
-#PIT_RATE_KI = 0.05
 #PIT_RATE_KD = 0.01
 
 #pitch yaw
