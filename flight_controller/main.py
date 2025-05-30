@@ -3,12 +3,14 @@ from controller.angle_pid import AnglePID
 from controller.rate_pid import RatePID
 from controller.motor_mixer import MotorMixer
 from controller.velocity_pid import VelocityPID
+from controller.position_pid import PositionPID
 from sensors.mavlink_sensor import MavlinkSensor
 from input.pilot_input import PilotInput
 from output.esc_driver import ESCDriver
 from core.stabilize_mode import StabilizeMode
 from core.alt_hold_mode import AltHoldMode
 from core.gps_hold_mode import GPSHoldMode
+from core.guided_mode import GuidedMode
 from core.mode_manager import ModeManager
 from utils.logger import Logger
 import config.pid_config as pid
@@ -25,6 +27,12 @@ if __name__ == "__main__":
     alt_pid = AltitudePID(kP=15, kI=3.5, kD=2)
     velocity_pid_x = VelocityPID(kP=15, kI=3.5, kD=2)
     velocity_pid_y = VelocityPID(kP=15, kI=3.5, kD=2)
+   
+
+    position_pid_x = VelocityPID(kP=0.4, kI=0.0, kD=0.1)
+
+    position_pid_y = VelocityPID(kP=0.4, kI=0.0, kD=0.1)
+
 
 
 
@@ -41,6 +49,19 @@ if __name__ == "__main__":
                                 angle_pid_roll, rate_pid_roll,
                                 angle_pid_pitch, rate_pid_pitch, rate_pid_yaw,
                                 alt_pid, mixer, sensors, esc)
+                                
+    from core.guided_mode import GuidedMode
+
+    guided_mode = GuidedMode(position_pid_x, position_pid_y,
+                         velocity_pid_x, velocity_pid_y,
+                         angle_pid_roll, rate_pid_roll,
+                         angle_pid_pitch, rate_pid_pitch, rate_pid_yaw,
+                         alt_pid, mixer, sensors, esc)
+
+
+   # guided_mode.set_target_velocity(vx=1.0, vy=0.0)  # move forward slowly
+ #   guided_mode.set_target_altitude(guided_mode.sensors.read_alt())  # maintain current altitude
+
 
     # Mode manager
     mode_manager = ModeManager()
@@ -68,6 +89,12 @@ if __name__ == "__main__":
         elif mode_signal == "STABILIZE" and current != "STABILIZE":
             mode_manager.switch_mode(stabilize_mode)
             current = "STABILIZE"
+            Logger.info(f"Switched to {current} mode")
+            
+        elif mode_signal == "GUIDED" and current != "GUIDED":
+            mode_manager.switch_mode(guided_mode)
+            guided_mode.set_target_position(lat=13.1986350, lon=77.7066030, alt=5)  # <-- Provide target here
+            current = "GUIDED"
             Logger.info(f"Switched to {current} mode")
 
 

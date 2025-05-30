@@ -16,6 +16,7 @@ class PilotInput:
         self.gps_hold = "GPS_HOLD"
         self.alt_hold = "ALT_HOLD"
         self.stabilize = "STABILIZE"
+        self.guided = "GUIDED"
         self.mode_switch = self.stabilize  # default mode
 
         self.running = True
@@ -69,12 +70,17 @@ class PilotInput:
             pygame.event.pump()
 
             # Mode switching
-            if joystick.get_button(0):
+            if joystick.get_button(0):                                    # Cross    (Button 0) → GPS_HOLD
                 self.mode_switch = self.gps_hold
-            elif joystick.get_button(3):
+            elif joystick.get_button(1):                                  # Square   (Button 1) → ALT_HOLD
                 self.mode_switch = self.alt_hold
-            elif joystick.get_button(2):
+            elif joystick.get_button(3):                                  # Triangle (Button 3) → STABILIZE
                 self.mode_switch = self.stabilize
+            elif joystick.get_button(2):                                  # Circle   (Button 2) → GUIDED
+                self.mode_switch = self.guided
+                
+                
+               
 
             # Axis controls
             self.roll_pwm = self._scale_joystick(joystick.get_axis(3))
