@@ -69,17 +69,16 @@ class PilotInput:
         while self.running:
             pygame.event.pump()
 
-            # Mode switching
-            if joystick.get_button(0):                                    # Cross    (Button 0) → GPS_HOLD
-                self.mode_switch = self.gps_hold
-            elif joystick.get_button(1):                                  # Square   (Button 1) → ALT_HOLD
-                self.mode_switch = self.alt_hold
-            elif joystick.get_button(3):                                  # Triangle (Button 3) → STABILIZE
-                self.mode_switch = self.stabilize
-            elif joystick.get_button(2):                                  # Circle   (Button 2) → GUIDED
-                self.mode_switch = self.guided
-                
-                
+           # Mode switching
+            if joystick.get_button(3):                                  # Triangle (Button 3) → STABILIZE
+                 self.mode_switch = self.stabilize
+            elif joystick.get_button(1):                                # Square   (Button 1) → ALT_HOLD
+                 self.mode_switch = self.alt_hold
+            elif joystick.get_button(0):                                # Cross    (Button 0) → GPS_HOLD
+                 self.mode_switch = self.gps_hold
+            elif joystick.get_button(2):                                # Circle   (Button 2) → GUIDED
+                 self.mode_switch = self.guided
+
                
 
             # Axis controls

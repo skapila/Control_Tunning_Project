@@ -1,111 +1,97 @@
-import math
+from core.flight_mode import FlightMode
 from utils.logger import Logger
 
-class GuidedMode:
-    def __init__(self, position_pid_x, position_pid_y,
+class GuidedMode(FlightMode):
+    def __init__(self, position_pid_x, position_pid_y,position_pid_z,
                  velocity_pid_x, velocity_pid_y,
-                 angle_pid_roll, rate_pid_roll, angle_pid_pitch, rate_pid_pitch, rate_pid_yaw,
-                 alt_pid, mixer, sensors, esc):
-
+                 angle_pid_roll, rate_pid_roll,
+                 angle_pid_pitch, rate_pid_pitch, rate_pid_yaw,
+                 altitude_pid, mixer, sensors, esc):
+                 
         self.position_pid_x = position_pid_x
         self.position_pid_y = position_pid_y
         self.velocity_pid_x = velocity_pid_x
         self.velocity_pid_y = velocity_pid_y
+        self.position_pid_z = position_pid_z  # only position pid in z
         self.angle_pid_roll = angle_pid_roll
         self.rate_pid_roll = rate_pid_roll
         self.angle_pid_pitch = angle_pid_pitch
         self.rate_pid_pitch = rate_pid_pitch
         self.rate_pid_yaw = rate_pid_yaw
-        self.alt_pid = alt_pid
+        self.altitude_pid = altitude_pid
         self.mixer = mixer
         self.sensors = sensors
         self.esc = esc
 
-        self.target_position = None  # (lat, lon)
-        self.target_altitude = None  # m
-        self.locked_position = None  # origin for NED
+        self.target_x = None
+        self.target_y = None
+        self.target_altitude = None  # locked at first entry
 
-    def activate(self):
+    def set_target_offset(self, dx=0.0, dy=0.0, alt=0.0):
         current_lat, current_lon = self.sensors.read_latlon()
-        current_alt = self.sensors.read_alt()
-        self.locked_position = (current_lat, current_lon)
-        if self.target_position is None:
-            self.target_position = (current_lat, current_lon)
-        if self.target_altitude is None:
-            self.target_altitude = current_alt
-        Logger.info(f"[GUIDED] Activated with target: {self.target_position} Alt: {self.target_altitude:.2f}")
-
-    def set_target_position(self, lat, lon, alt):
-        self.target_position = (lat, lon)
-        self.target_altitude = alt
-        Logger.info(f"[GUIDED] New target position: {self.target_position} Alt: {alt:.2f}")
-
-    def gps_to_local(self, lat1, lon1, lat0, lon0):
-        scale_lat = 111320
-        scale_lon = 111320 * math.cos(math.radians(lat0))
-        dx = (lat1 - lat0) * scale_lat
-        dy = (lon1 - lon0) * scale_lon
-        return dx, dy
-
+        self.target_x = current_lat + dx  # assuming simplified local frame for demo
+        self.target_y = current_lon + dy
+        self.target_alt = alt
+        
     def update(self, pilot_input, dt):
-        if dt <= 0.0 or dt > 1.0:
-            Logger.warning("[GUIDED] Skipping update due to bad dt")
-            return
-
-        # Current readings
-        current_lat, current_lon = self.sensors.read_latlon()
+        # Read current state
+        current_x, current_y = self.sensors.read_latlon()
         current_alt = self.sensors.read_alt()
-        yaw = self.sensors.read_yaw()
-        vx_ned, vy_ned, _ = self.sensors.read_velocity_ned()
+        
+        if self.target_x is None or self.target_y is None or self.target_alt is None:
+            self.set_target_offset(0.0, 0.0, current_alt)
+            Logger.info(f"[GUIDED] Locked initial target at: ({self.target_x}, {self.target_y}, {self.target_alt})")
 
-        # --- Convert target GPS to local offset
-        dx, dy = self.gps_to_local(self.target_position[0], self.target_position[1],
-                                   self.locked_position[0], self.locked_position[1])
-        cx, cy = self.gps_to_local(current_lat, current_lon,
-                                   self.locked_position[0], self.locked_position[1])
-        dx_err = dx - cx
-        dy_err = dy - cy
+        # --- POSITION CONTROLLER (X-Y) ---
+        pos_error_x = self.target_x - current_x
+        pos_error_y = self.target_y - current_y
 
-        # --- Position to Velocity
-        vx_des = self.position_pid_x.compute(dx_err, 0.0, dt)
-        vy_des = self.position_pid_y.compute(dy_err, 0.0, dt)
+        desired_vx = self.position_pid_x.compute(self.target_x, current_x, dt)
+        desired_vy = self.position_pid_y.compute(self.target_y, current_y, dt)
 
-        # --- Convert velocity to body frame
-        vx_body = math.cos(yaw) * vx_ned + math.sin(yaw) * vy_ned
-        vy_body = -math.sin(yaw) * vx_ned + math.cos(yaw) * vy_ned
+        # Read current velocities (NED frame)
+        vx, vy, vz = self.sensors.read_velocity_ned()
+        
+        # Velocity control for XY
+        velocity_cmd_x = self.velocity_pid_x.compute(desired_vx, vx, dt)
+        velocity_cmd_y = self.velocity_pid_y.compute(desired_vy, vy, dt)
 
-        # --- Velocity to Attitude
-        desired_roll = self.velocity_pid_x.compute(vy_des, vy_body, dt)
-        desired_pitch = -self.velocity_pid_y.compute(vx_des, vx_body, dt)
+        # Angle control from velocity control
+        desired_pitch = -velocity_cmd_x
+        desired_roll = velocity_cmd_y
 
-        # --- Attitude and Rate PID
+        # --- ALTITUDE CONTROLLER ---
+        vz_cmd = self.position_pid_x.compute(self.target_alt, current_alt, dt)
+        current_vz = -vz  # Convert NED downward to positive upward
+        altitude_thrust_pwm = self.altitude_pid.compute(vz_cmd, current_vz, dt)
+
+        # ---------- ANGLE PID LOOP ----------
         actual_roll = self.sensors.read_roll()
-        actual_pitch = self.sensors.read_pitch()
-        actual_rate_roll = self.sensors.read_roll_rate()
-        actual_rate_pitch = self.sensors.read_pitch_rate()
-        actual_yaw_rate = self.sensors.read_yaw_rate()
-
         desired_rate_roll = self.angle_pid_roll.compute(desired_roll, actual_roll, dt)
-        desired_rate_pitch = self.angle_pid_pitch.compute(desired_pitch, actual_pitch, dt)
-
+        actual_rate_roll = self.sensors.read_roll_rate()
         torque_roll = self.rate_pid_roll.compute(desired_rate_roll, actual_rate_roll, dt)
+
+        actual_pitch = self.sensors.read_pitch()
+        desired_rate_pitch = self.angle_pid_pitch.compute(desired_pitch, actual_pitch, dt)
+        actual_rate_pitch = self.sensors.read_pitch_rate()
         torque_pitch = self.rate_pid_pitch.compute(desired_rate_pitch, actual_rate_pitch, dt)
 
-        # Yaw deadband filter
-        yaw_pwm = pilot_input.get_yaw_pwm()
-        if 1480 <= yaw_pwm <= 1520:
-            desired_yaw_rate = 0.0
-        else:
-            desired_yaw_rate = pilot_input.get_desired_yaw_rate()
-        torque_yaw = self.rate_pid_yaw.compute(desired_yaw_rate, actual_yaw_rate, dt)
+        desired_rate_yaw = pilot_input.get_desired_yaw_rate()
+        actual_rate_yaw = self.sensors.read_yaw_rate()
+        torque_yaw = self.rate_pid_yaw.compute(desired_rate_yaw, actual_rate_yaw, dt)
 
-        # --- Altitude hold
-        throttle_pwm = int(self.alt_pid.compute(self.target_altitude, current_alt, dt))
-
-        # --- Mix and send
-        pwm_outputs = self.mixer.mix(throttle_pwm, torque_pitch, torque_roll, torque_yaw)
+        pwm_outputs = self.mixer.mix(altitude_thrust_pwm, torque_pitch, torque_roll, torque_yaw)
         self.esc.send_pwm(self.sensors, pwm_outputs)
 
-        Logger.debug(f"[GUIDED] dx_err={dx_err:.2f}, dy_err={dy_err:.2f}")
-        Logger.debug(f"[GUIDED] vx_des={vx_des:.2f}, vy_des={vy_des:.2f}")
+        Logger.debug(f"[GUIDED] Pos: ({current_x if current_x is not None else 0:.2f}, "
+             f"{current_y if current_y is not None else 0:.2f}, "
+             f"{current_alt if current_alt is not None else 0:.2f}), "
+             f"Target: ({self.target_x if self.target_x is not None else 0:.2f}, "
+             f"{self.target_y if self.target_y is not None else 0:.2f}, "
+             f"{self.target_alt if self.target_alt is not None else 0:.2f}), "
+             f"Vz_cmd: {vz_cmd:.2f}, PWM: {altitude_thrust_pwm:.2f}")
+        Logger.debug(f"[GUIDED] Error | dX: {pos_error_x:.2f} m, dY: {pos_error_y:.2f} m, dZ: {self.target_alt - current_alt:.2f} m")
+        Logger.debug(f"[GUIDED] PWM: {altitude_thrust_pwm:.2f}")
+        
+
 

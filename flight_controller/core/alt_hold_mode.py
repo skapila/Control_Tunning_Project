@@ -4,6 +4,7 @@ from utils.logger import Logger
 class AltHoldMode:
     def __init__(self, alt_pid, angle_pid_roll, rate_pid_roll, angle_pid_pitch, rate_pid_pitch, rate_pid_yaw, mixer, sensors, esc):
         self.alt_pid = alt_pid
+       
         self.angle_pid_roll = angle_pid_roll
         self.rate_pid_roll = rate_pid_roll
         self.angle_pid_pitch = angle_pid_pitch
@@ -26,15 +27,18 @@ class AltHoldMode:
         # adjust target altitude based on throttle PWM
         vel_scale = 0.005  # max ±2.5 m/s
         throttle_pwm = pilot_input.get_throttle_pwm()
+        vz=(throttle_pwm - 1500) * vel_scale
         if self.alt_pid.hover_pwm - self.hover_range_limit <= throttle_pwm <= self.alt_pid.hover_pwm + self.hover_range_limit:
            # do nothing, hold
            pass
         elif throttle_pwm > (self.alt_pid.hover_pwm + self.hover_range_limit):
-             self.target_altitude += (throttle_pwm - 1500) * vel_scale*dt
+             self.target_altitude += vz*dt
         elif throttle_pwm < (self.alt_pid.hover_pwm - self.hover_range_limit):
-             self.target_altitude += (throttle_pwm - 1500) * vel_scale*dt
+             self.target_altitude += vz*dt
 
         altitude_thrust_pwm = self.alt_pid.compute(self.target_altitude, current_altitude, dt)
+
+
 
         # roll control
         desired_roll = pilot_input.get_desired_roll_angle()

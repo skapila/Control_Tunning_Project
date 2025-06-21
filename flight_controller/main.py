@@ -24,17 +24,18 @@ if __name__ == "__main__":
     angle_pid_pitch = AnglePID(kP=pid.PIT_ANGLE_KP)
     rate_pid_pitch = RatePID(kP=pid.PIT_RATE_KP, kI=pid.PIT_RATE_KI, kD=pid.PIT_RATE_KD)
     rate_pid_yaw = RatePID(kP=pid.YAW_RATE_KP, kI=pid.YAW_RATE_KI, kD=pid.YAW_RATE_KD)
+    
+    # Altitude controller (works on vertical velocity error)
     alt_pid = AltitudePID(kP=15, kI=3.5, kD=2)
+    
+    # XY Velocity controllers
     velocity_pid_x = VelocityPID(kP=15, kI=3.5, kD=2)
     velocity_pid_y = VelocityPID(kP=15, kI=3.5, kD=2)
-   
-
-    position_pid_x = VelocityPID(kP=0.4, kI=0.0, kD=0.1)
-
-    position_pid_y = VelocityPID(kP=0.4, kI=0.0, kD=0.1)
-
-
-
+    
+    # XY Position controllers
+    position_pid_x = PositionPID(kP=0.04, kI=0.01, kD=0.001)
+    position_pid_y = PositionPID(kP=0.04, kI=0.01, kD=0.001)
+    position_pid_z = PositionPID(kP=0.05, kI=0.015, kD=0.002)
 
     # Setup all components
     mixer = MotorMixer()
@@ -42,25 +43,18 @@ if __name__ == "__main__":
     esc = ESCDriver()
     pilot_input = PilotInput()
 
-    # Modes
+    # Flight Modes
     stabilize_mode = StabilizeMode(angle_pid_roll, rate_pid_roll, angle_pid_pitch, rate_pid_pitch, rate_pid_yaw, mixer, sensors, esc)
     alt_hold_mode = AltHoldMode(alt_pid, angle_pid_roll, rate_pid_roll, angle_pid_pitch, rate_pid_pitch, rate_pid_yaw, mixer, sensors, esc)
     gps_hold_mode = GPSHoldMode(velocity_pid_x, velocity_pid_y,
                                 angle_pid_roll, rate_pid_roll,
                                 angle_pid_pitch, rate_pid_pitch, rate_pid_yaw,
                                 alt_pid, mixer, sensors, esc)
-                                
-    from core.guided_mode import GuidedMode
-
-    guided_mode = GuidedMode(position_pid_x, position_pid_y,
+    guided_mode = GuidedMode(position_pid_x, position_pid_y,position_pid_z,
                          velocity_pid_x, velocity_pid_y,
                          angle_pid_roll, rate_pid_roll,
                          angle_pid_pitch, rate_pid_pitch, rate_pid_yaw,
                          alt_pid, mixer, sensors, esc)
-
-
-   # guided_mode.set_target_velocity(vx=1.0, vy=0.0)  # move forward slowly
- #   guided_mode.set_target_altitude(guided_mode.sensors.read_alt())  # maintain current altitude
 
 
     # Mode manager
@@ -93,7 +87,12 @@ if __name__ == "__main__":
             
         elif mode_signal == "GUIDED" and current != "GUIDED":
             mode_manager.switch_mode(guided_mode)
-            guided_mode.set_target_position(lat=13.1986350, lon=77.7066030, alt=5)  # <-- Provide target here
+            # Set initial target
+            current_lat, current_lon = sensors.read_latlon()
+            current_alt = sensors.read_alt()
+    
+            guided_mode.set_target_offset(dx=30.0, dy=0.0, alt=sensors.read_alt() + 2.0) 
+            
             current = "GUIDED"
             Logger.info(f"Switched to {current} mode")
 
