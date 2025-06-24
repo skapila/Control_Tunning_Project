@@ -54,7 +54,7 @@ class GPSHoldMode:
  
         if self.target_altitude is None:
            self.activate()
-    # --- Read state
+    # --- Read statesemaphore
         vx_ned, vy_ned, _ = self.sensors.read_velocity_ned()
         yaw = self.sensors.read_yaw()  # In radians
         current_alt = self.sensors.read_alt()

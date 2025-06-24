@@ -18,7 +18,7 @@ class PilotInput:
         self.stabilize = "STABILIZE"
         self.guided = "GUIDED"
         self.mode_switch = self.stabilize  # default mode
-
+       
         self.running = True
         self.thread = threading.Thread(target=self._listen_to_rc, daemon=True)
         self.thread.start()

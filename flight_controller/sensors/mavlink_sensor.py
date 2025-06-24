@@ -21,6 +21,7 @@ class MavlinkSensor:
         self.vx = 0.0
         self.vy = 0.0
         self.vz = 0.0
+        self.gps_home_flag = 0
 
         self.running = True
         self.listener_thread = threading.Thread(target=self._listen_loop, daemon=True)
@@ -80,7 +81,8 @@ class MavlinkSensor:
                     self.vx = msg['vx']
                     self.vy = msg['vy']
                     self.vz = msg['vz']
-                    print("====="+str(self.vx)+"========")                
+                    self.gps_home_flag =1
+                    print("\033[92m[GPS] gps_detect\033[0m")                
 
             except Exception as e:
                 Logger.error(f"Exception caught: {e}")
@@ -93,7 +95,7 @@ class MavlinkSensor:
     def read_yaw(self): return self.yaw_radian
     def read_yaw_rate(self): return self.yaw_rate
     def read_alt(self): return self.altitude
-
+    
     def read_latlon(self): return (self.lat, self.lon)
     def read_velocity_ned(self): return (self.vx, self.vy, self.vz)
 
