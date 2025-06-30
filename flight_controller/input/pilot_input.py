@@ -18,6 +18,12 @@ class PilotInput:
         self.stabilize = "STABILIZE"
         self.guided = "GUIDED"
         self.mode_switch = self.stabilize  # default mode
+        
+        self.dpad_up = False
+        self.dpad_down = False
+        self.dpad_left = False
+        self.dpad_right = False
+
        
         self.running = True
         self.thread = threading.Thread(target=self._listen_to_rc, daemon=True)
@@ -68,6 +74,8 @@ class PilotInput:
 
         while self.running:
             pygame.event.pump()
+            
+            
 
            # Mode switching
             if joystick.get_button(3):                                  # Triangle (Button 3) → STABILIZE
@@ -80,7 +88,13 @@ class PilotInput:
                  self.mode_switch = self.guided
 
                
-
+            # D-Pad input (HAT)
+            hat_x, hat_y = joystick.get_hat(0)
+            self.dpad_up = (hat_y == 1)
+            self.dpad_down = (hat_y == -1)
+            self.dpad_left = (hat_x == -1)
+            self.dpad_right = (hat_x == 1)
+            
             # Axis controls
             self.roll_pwm = self._scale_joystick(joystick.get_axis(3))
             self.pitch_pwm = self._scale_joystick(joystick.get_axis(4))
@@ -88,6 +102,7 @@ class PilotInput:
             self.yaw_pwm = self._scale_joystick(joystick.get_axis(0))
 
             Logger.debug(f"PWM inputs :- Roll: {self.roll_pwm}, Pitch: {self.pitch_pwm}, Throttle: {self.throttle_pwm}, Yaw: {self.yaw_pwm}")
+            Logger.debug(f"D-Pad: UP={self.dpad_up}, DOWN={self.dpad_down}, LEFT={self.dpad_left}, RIGHT={self.dpad_right}")
             time.sleep(0.1)
 
     def stop(self):

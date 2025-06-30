@@ -65,7 +65,10 @@ if __name__ == "__main__":
     # Set default mode
     mode_manager.switch_mode(stabilize_mode)
     Logger.info("Starting flight control loop... Press Ctrl+C to stop.")
-
+    
+    # Target offset deltas for guided mode movement (in meters)
+    TARGET_DELTA = 30.0
+    dx, dy = 0.0, 0.0
     while True:
         dt = 0.1
         if sensors.gps_home_flag == 1 and gps_home_lock ==0 :
@@ -102,7 +105,28 @@ if __name__ == "__main__":
             
             current = "GUIDED"
             Logger.info(f"Switched to {current} mode")
+            
+          # Handle Guided Mode Target Movement with D-Pad
 
+        if current == "GUIDED":   
+            if pilot_input.dpad_up:
+                dx += TARGET_DELTA
+                dy = 0
+                guided_mode.set_target_offset(dx=dx, dy=dy, alt=-150)
+            if pilot_input.dpad_down:
+                dx -= TARGET_DELTA
+                dy = 0
+                guided_mode.set_target_offset(dx=dx, dy=dy, alt=-150)
+            if pilot_input.dpad_right:
+                dy += TARGET_DELTA
+                dx = 0
+                guided_mode.set_target_offset(dx=dx, dy=dy, alt=-150)
+            if pilot_input.dpad_left:
+                dy -= TARGET_DELTA
+                dx = 0
+                guided_mode.set_target_offset(dx=dx, dy=dy, alt=-150) 
+
+            
 
         # Update the current mode
         mode_manager.update(pilot_input, dt)

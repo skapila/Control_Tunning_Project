@@ -34,7 +34,7 @@ class GuidedMode(FlightMode):
         self.vertical_speed = 6
        
         
-    def smooth_velocity(self,distance_to_target, max_speed=4, slowdown_radius=5.0):
+    def smooth_velocity(self,distance_to_target, max_speed=4, slowdown_radius=10.0):
         if distance_to_target >= slowdown_radius:
            return max_speed
         elif distance_to_target <= 0.1:
