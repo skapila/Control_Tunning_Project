@@ -23,6 +23,10 @@ class PilotInput:
         self.dpad_down = False
         self.dpad_left = False
         self.dpad_right = False
+        
+        self.takeoff_pressed = False
+        self.land_pressed = False
+
 
        
         self.running = True
@@ -95,6 +99,11 @@ class PilotInput:
             self.dpad_left = (hat_x == -1)
             self.dpad_right = (hat_x == 1)
             
+            # Triggers
+            self.takeoff_pressed = joystick.get_button(4)  # L1
+            self.land_pressed = joystick.get_button(6)     # L2
+
+
             # Axis controls
             self.roll_pwm = self._scale_joystick(joystick.get_axis(3))
             self.pitch_pwm = self._scale_joystick(joystick.get_axis(4))
@@ -103,6 +112,7 @@ class PilotInput:
 
             Logger.debug(f"PWM inputs :- Roll: {self.roll_pwm}, Pitch: {self.pitch_pwm}, Throttle: {self.throttle_pwm}, Yaw: {self.yaw_pwm}")
             Logger.debug(f"D-Pad: UP={self.dpad_up}, DOWN={self.dpad_down}, LEFT={self.dpad_left}, RIGHT={self.dpad_right}")
+            Logger.debug(f"Takeoff (L1): {self.takeoff_pressed}, Land (L2): {self.land_pressed}")
             time.sleep(0.1)
 
     def stop(self):

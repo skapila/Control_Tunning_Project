@@ -32,6 +32,16 @@ class GuidedMode(FlightMode):
         self.home_alt = None
         self.ground_speed = 4
         self.vertical_speed = 6
+        
+        self.takeoff_active = False
+        self.landing_active = False
+        self.last_set_alt = 150  # this matches your `set_target_offset` alt
+        
+        self.takeoff_enabled = False  
+        self.takeoff_complete = False
+        self.takeoff_altitude = 10.0  # meters above home_alt
+
+
        
         
     def smooth_velocity(self,distance_to_target, max_speed=4, slowdown_radius=10.0):
@@ -86,12 +96,14 @@ class GuidedMode(FlightMode):
 
        return lat2, lon2    
 
-    def set_target_offset(self, dx=0.0, dy=0.0, alt=0.0):
+    def set_target_offset(self, dx=0.0, dy=0.0, alt=None):
         current_lat, current_lon = self.sensors.read_latlon()
         current_alt = self.sensors.read_alt()
         self.target_lat,self.target_lon = self.ned_to_geodetic(current_lat,current_lon,dx,dy)
         self.target_x,self.target_y = self.geodetic_to_ned(self.home_lat, self.home_lon,self.target_lat, self.target_lon)
-        self.target_alt = self.home_alt - alt           #####with ned reference
+       
+        if alt is not None:
+           self.target_alt = self.home_alt - alt           #####with ned reference
         
     def unit_vector(self,vx, vy):
         magnitude = math.sqrt(vx**2 + vy**2)
@@ -110,6 +122,21 @@ class GuidedMode(FlightMode):
         if self.target_x is None or self.target_y is None or self.target_alt is None:
             self.set_target_offset(0.0, 0.0, current_alt)
             Logger.info(f"[GUIDED] Locked initial target at: ({self.target_x}, {self.target_y}, {self.target_alt})")
+            
+        # --- Handle Takeoff / Landing Commands ---
+        if pilot_input.takeoff_pressed:
+           if not self.takeoff_active:
+              Logger.info("[GUIDED] Takeoff initiated")
+              self.takeoff_active = True
+              self.landing_active = False
+              self.target_alt = self.home_alt - self.last_set_alt  # NED reference
+
+        elif pilot_input.land_pressed:
+           if not self.landing_active:
+              Logger.info("[GUIDED] Landing initiated")
+              self.landing_active = True
+              self.takeoff_active = False
+              self.target_alt = self.home_alt  # ground level
 
         # --- POSITION CONTROLLER (X-Y) ---
         current_x,current_y = self.geodetic_to_ned(self.home_lat, self.home_lon,current_lat, current_lon)
@@ -146,7 +173,22 @@ class GuidedMode(FlightMode):
         vz_cmd = self.position_pid_x.compute(self.target_alt, current_alt, dt)
         vz_speed = vz_speed*math.copysign(1,vz_cmd)
         current_vz = -vz  # Convert NED downward to positive upward
+        #altitude_thrust_pwm = self.altitude_pid.compute(vz_speed, current_vz, dt)
+        
         altitude_thrust_pwm = self.altitude_pid.compute(vz_speed, current_vz, dt)
+
+        # Takeoff logic
+        if self.takeoff_enabled and not self.takeoff_complete:
+            target_takeoff_alt = self.home_alt - self.takeoff_altitude
+            if current_alt >= target_takeoff_alt - 0.5:
+               self.takeoff_complete = True
+               self.takeoff_enabled = False
+               Logger.info("[GUIDED] Takeoff complete.")
+            else:
+        # Apply override thrust to lift-off
+               if altitude_thrust_pwm < 1650:
+                  altitude_thrust_pwm = 1650
+
 
         # ---------- ANGLE PID LOOP ----------
         actual_roll = self.sensors.read_roll()

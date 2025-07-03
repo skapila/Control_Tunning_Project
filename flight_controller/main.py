@@ -69,6 +69,8 @@ if __name__ == "__main__":
     # Target offset deltas for guided mode movement (in meters)
     TARGET_DELTA = 30.0
     dx, dy = 0.0, 0.0
+    guided_active = False
+    
     while True:
         dt = 0.1
         if sensors.gps_home_flag == 1 and gps_home_lock ==0 :
@@ -101,30 +103,50 @@ if __name__ == "__main__":
             current_lat, current_lon = sensors.read_latlon()
             current_alt = sensors.read_alt()
     
-            guided_mode.set_target_offset(dx=0.0, dy=0.0, alt= -150) 
+          #  guided_mode.set_target_offset(dx=0.0, dy=0.0, alt= -150) 
             
             current = "GUIDED"
+            guided_active = True
             Logger.info(f"Switched to {current} mode")
             
           # Handle Guided Mode Target Movement with D-Pad
 
-        if current == "GUIDED":   
-            if pilot_input.dpad_up:
-                dx += TARGET_DELTA
-                dy = 0
-                guided_mode.set_target_offset(dx=dx, dy=dy, alt=-150)
-            if pilot_input.dpad_down:
-                dx -= TARGET_DELTA
-                dy = 0
-                guided_mode.set_target_offset(dx=dx, dy=dy, alt=-150)
-            if pilot_input.dpad_right:
-                dy += TARGET_DELTA
-                dx = 0
-                guided_mode.set_target_offset(dx=dx, dy=dy, alt=-150)
-            if pilot_input.dpad_left:
-                dy -= TARGET_DELTA
-                dx = 0
-                guided_mode.set_target_offset(dx=dx, dy=dy, alt=-150) 
+        if current == "GUIDED" and guided_active:   
+        
+        # L1 = takeoff → only now set the initial target
+           if pilot_input.takeoff_pressed and not guided_mode.takeoff_enabled:
+
+              guided_mode.takeoff_enabled = True
+              guided_mode.takeoff_complete = False
+              guided_mode.set_target_offset(dx=0, dy=0, alt=-guided_mode.takeoff_altitude)  # Use POSITIVE 150 if target_alt = home_alt - alt
+              Logger.info("L1 pressed: Takeoff initiated.")
+
+       # L2 = land → set target_alt to home
+           if pilot_input.land_pressed and guided_mode.takeoff_enabled:
+              guided_mode.set_target_offset(dx=0.0, dy=0.0, alt=0.0)
+              guided_mode.takeoff_enabled = False
+              Logger.info("L2 pressed: Landing initiated.")
+              
+         # --- D-Pad Movement (only after takeoff enabled) ---    
+           if guided_mode.takeoff_complete: 
+              if pilot_input.dpad_up:
+                 dx += TARGET_DELTA
+                 dy = 0
+                 guided_mode.set_target_offset(dx=dx, dy=dy)
+              if pilot_input.dpad_down:
+                 dx -= TARGET_DELTA
+                 dy = 0
+                 guided_mode.set_target_offset(dx=dx, dy=dy)
+              if pilot_input.dpad_right:
+                 dy += TARGET_DELTA
+                 dx = 0
+                 guided_mode.set_target_offset(dx=dx, dy=dy)
+              if pilot_input.dpad_left:
+                 dy -= TARGET_DELTA
+                 dx = 0
+                 guided_mode.set_target_offset(dx=dx, dy=dy) 
+                
+           
 
             
 
