@@ -40,9 +40,7 @@ class GuidedMode(FlightMode):
         self.takeoff_enabled = False  
         self.takeoff_complete = False
         self.takeoff_altitude = 10.0  # meters above home_alt
-
-
-       
+   
         
     def smooth_velocity(self,distance_to_target, max_speed=4, slowdown_radius=10.0):
         if distance_to_target >= slowdown_radius:
@@ -120,7 +118,7 @@ class GuidedMode(FlightMode):
         current_alt = self.sensors.read_alt()
         
         if self.target_x is None or self.target_y is None or self.target_alt is None:
-            self.set_target_offset(0.0, 0.0, current_alt)
+            self.set_target_offset(0.0, 0.0, 0.0)
             Logger.info(f"[GUIDED] Locked initial target at: ({self.target_x}, {self.target_y}, {self.target_alt})")
             
         # --- Handle Takeoff / Landing Commands ---
@@ -129,7 +127,7 @@ class GuidedMode(FlightMode):
               Logger.info("[GUIDED] Takeoff initiated")
               self.takeoff_active = True
               self.landing_active = False
-              self.target_alt = self.home_alt - self.last_set_alt  # NED reference
+              self.target_alt = self.home_alt - self.takeoff_altitude  # NED reference
 
         elif pilot_input.land_pressed:
            if not self.landing_active:
@@ -172,7 +170,8 @@ class GuidedMode(FlightMode):
         vz_speed = self.smooth_velocity(abs(diff_alt),max_speed=self.vertical_speed)
         vz_cmd = self.position_pid_x.compute(self.target_alt, current_alt, dt)
         vz_speed = vz_speed*math.copysign(1,vz_cmd)
-        current_vz = -vz  # Convert NED downward to positive upward
+        current_vz = -vz  
+        # Convert NED downward to positive upward
         #altitude_thrust_pwm = self.altitude_pid.compute(vz_speed, current_vz, dt)
         
         altitude_thrust_pwm = self.altitude_pid.compute(vz_speed, current_vz, dt)

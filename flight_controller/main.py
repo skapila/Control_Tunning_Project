@@ -5,7 +5,7 @@ from controller.motor_mixer import MotorMixer
 from controller.velocity_pid import VelocityPID
 from controller.position_pid import PositionPID
 from sensors.mavlink_sensor import MavlinkSensor
-from input.pilot_input import PilotInput
+from input.sm600_input import SM600Input as PilotInput
 from output.esc_driver import ESCDriver
 from core.stabilize_mode import StabilizeMode
 from core.alt_hold_mode import AltHoldMode
